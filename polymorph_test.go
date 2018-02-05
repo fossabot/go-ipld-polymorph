@@ -117,18 +117,6 @@ func TestGetPolymorphBadJSON(t *testing.T) {
 	}
 }
 
-// func TestGetBoolNotBool(t *testing.T) {
-// 	p := ipldpolymorph.New(ipfsURL)
-// 	p.UnmarshalJSON([]byte(`{"foo": "bar"}`))
-//
-// 	foo, err := p.GetBool("foo")
-// 	if err == nil {
-// 		t.Error("Expected GetBool to return an error, received nil")
-// 	}
-// 	if foo {
-// 		t.Errorf("Expected foo to be false, was true")
-// 	}
-// }
 func TestGetString(t *testing.T) {
 	p := ipldpolymorph.New(ipfsURL)
 	p.UnmarshalJSON([]byte(`{"foo": "bar"}`))
