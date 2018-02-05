@@ -7,19 +7,23 @@ import (
 	"strings"
 )
 
+// DefaultIPFSURL can be set to allow Polymorph
+// instantiated to be instantiated without a url
+var DefaultIPFSURL url.URL
+
 // Polymorph an object that treats IPLD references and
 // raw values the same. It is intended to be constructed
 // with New, and to be JSON Unmarshaled into. Polymorph
 // lazy loads all IPLD references and caches the results,
 // so subsequent calls to a path will have nearly no cost.
 type Polymorph struct {
-	IPFSURL url.URL
+	IPFSURL *url.URL
 	raw     json.RawMessage
 }
 
 // New Constructs a new Polymorph instance
 func New(ipfsURL url.URL) *Polymorph {
-	return &Polymorph{IPFSURL: ipfsURL}
+	return &Polymorph{IPFSURL: &ipfsURL}
 }
 
 // AsBool returns the current value as a bool,
@@ -61,7 +65,7 @@ func (p *Polymorph) AsRawMessage() (json.RawMessage, error) {
 		return p.raw, nil
 	}
 
-	return ResolveRef(p.IPFSURL, p.raw)
+	return ResolveRef(p.ipfsURL(), p.raw)
 }
 
 // GetBool returns the bool value at path, resolving
@@ -75,7 +79,7 @@ func (p *Polymorph) GetBool(path string) (bool, error) {
 	return poly.AsBool()
 }
 
-// GetPolymorph returns a Polymoph value at path, resolving
+// GetPolymorph returns a Polymorph value at path, resolving
 // IPLD references if necessary to get there.
 func (p *Polymorph) GetPolymorph(path string) (*Polymorph, error) {
 	raw, err := p.GetRawMessage(path)
@@ -83,7 +87,7 @@ func (p *Polymorph) GetPolymorph(path string) (*Polymorph, error) {
 		return nil, err
 	}
 
-	value := New(p.IPFSURL)
+	value := New(p.ipfsURL())
 	_ = value.UnmarshalJSON(raw) // UnmarshalJSON returns an error
 	return value, nil
 }
@@ -106,7 +110,7 @@ func (p *Polymorph) GetRawMessage(path string) (json.RawMessage, error) {
 			return nil, fmt.Errorf(`no value found at path "%v"`, path)
 		}
 		if IsRef(raw) {
-			raw, err = ResolveRef(p.IPFSURL, raw)
+			raw, err = ResolveRef(p.ipfsURL(), raw)
 			if err != nil {
 				return nil, err
 			}
@@ -142,4 +146,11 @@ func (p *Polymorph) MarshalJSON() ([]byte, error) {
 func (p *Polymorph) UnmarshalJSON(b []byte) error {
 	p.raw = json.RawMessage(b)
 	return nil
+}
+
+func (p *Polymorph) ipfsURL() url.URL {
+	if p.IPFSURL == nil {
+		return DefaultIPFSURL
+	}
+	return *p.IPFSURL
 }

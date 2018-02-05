@@ -3,6 +3,7 @@ package ipldpolymorph_test
 import (
 	"encoding/json"
 	"net/http"
+	"net/url"
 	"strings"
 	"testing"
 
@@ -371,6 +372,28 @@ func TestParse(t *testing.T) {
 	err := json.Unmarshal([]byte(`{"foo": "bar"}`), &p)
 	if err != nil {
 		t.Error("Could not parse json", err.Error())
+	}
+}
+
+func TestParseWithDefault(t *testing.T) {
+	beforeEach()
+	ipldpolymorph.DefaultIPFSURL = ipfsURL
+	defer func() { ipldpolymorph.DefaultIPFSURL = url.URL{} }()
+
+	httpResponses[http.MethodGet]["/api/v0/dag/get?arg=foo"] = `"bar"`
+	p := ipldpolymorph.Polymorph{}
+
+	err := json.Unmarshal([]byte(`{"/": "foo"}`), &p)
+	if err != nil {
+		t.Error("Could not parse json", err.Error())
+	}
+
+	foo, err := p.AsString()
+	if err != nil {
+		t.Error("Could not retrieve p AsString", err.Error())
+	}
+	if foo != "bar" {
+		t.Errorf(`Expected foo == "bar". Actual foo == "%v"`, foo)
 	}
 }
 
