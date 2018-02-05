@@ -9,6 +9,71 @@ import (
 	ipldpolymorph "github.com/computes/go-ipld-polymorph"
 )
 
+func TestAsBool(t *testing.T) {
+	beforeEach()
+
+	p := ipldpolymorph.New(ipfsURL)
+	p.UnmarshalJSON([]byte(`true`))
+
+	foo, err := p.AsBool()
+	if err != nil {
+		t.Error(`Could not AsBool:`, err.Error())
+	}
+
+	if !foo {
+		t.Errorf(`Expected foo == true. Actual foo == false`)
+	}
+}
+
+func TestAsBoolBadJSON(t *testing.T) {
+	beforeEach()
+
+	p := ipldpolymorph.New(ipfsURL)
+	p.UnmarshalJSON([]byte(`tr`))
+
+	foo, err := p.AsBool()
+	if err == nil {
+		t.Error("Expected AsBool to return an error, received nil")
+	}
+
+	if foo {
+		t.Errorf(`Expected foo == false. Actual foo == true`)
+	}
+}
+
+func TestAsBoolIPLDRef(t *testing.T) {
+	beforeEach()
+
+	httpResponses[http.MethodGet]["/api/v0/dag/get?arg=foo"] = `true`
+	p := ipldpolymorph.New(ipfsURL)
+	p.UnmarshalJSON([]byte(`{"/": "foo"}`))
+
+	foo, err := p.AsBool()
+	if err != nil {
+		t.Error("Could not AsBool: ", err.Error())
+	}
+
+	if !foo {
+		t.Errorf(`Expected foo == true. Actual foo == false`)
+	}
+}
+
+func TestAsBoolBadIPLDRef(t *testing.T) {
+	beforeEach()
+
+	p := ipldpolymorph.New(ipfsURL)
+	p.UnmarshalJSON([]byte(`{"/": "foo"}`))
+
+	foo, err := p.AsBool()
+	if err == nil {
+		t.Error("Expected AsBool to return an error, received nil")
+	}
+
+	if foo {
+		t.Errorf(`Expected foo == false. Actual foo == true`)
+	}
+}
+
 func TestAsString(t *testing.T) {
 	beforeEach()
 

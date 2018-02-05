@@ -22,31 +22,52 @@ func New(ipfsURL url.URL) *Polymorph {
 	return &Polymorph{ipfsURL: ipfsURL}
 }
 
+// AsBool returns the current value as a bool,
+// resolving the IPLD reference if necessary
+func (p *Polymorph) AsBool() (bool, error) {
+	raw, err := p.AsRawMessage()
+	if err != nil {
+		return false, err
+	}
+
+	value := false
+	err = json.Unmarshal(raw, &value)
+	if err != nil {
+		return false, err
+	}
+	return value, nil
+}
+
 // AsString returns the current value as a string,
 // resolving the IPLD reference if necessary
 func (p *Polymorph) AsString() (string, error) {
-	var err error
-
-	raw := p.raw
-	if IsRef(raw) {
-		raw, err = ResolveRef(p.ipfsURL, raw)
-		if err != nil {
-			return "", err
-		}
-	}
-
-	str := ""
-	err = json.Unmarshal(raw, &str)
+	raw, err := p.AsRawMessage()
 	if err != nil {
 		return "", err
 	}
-	return str, nil
+
+	value := ""
+	err = json.Unmarshal(raw, &value)
+	if err != nil {
+		return "", err
+	}
+	return value, nil
+}
+
+// AsRawMessage returns the current value as a string,
+// resolving the IPLD reference if necessary
+func (p *Polymorph) AsRawMessage() (json.RawMessage, error) {
+	if !IsRef(p.raw) {
+		return p.raw, nil
+	}
+
+	return ResolveRef(p.ipfsURL, p.raw)
 }
 
 // GetBool returns the bool value at path, resolving
 // IPLD references if necessary to get there.
 func (p *Polymorph) GetBool(path string) (bool, error) {
-	raw, err := p.GetRawJSON(path)
+	raw, err := p.GetRawMessage(path)
 	if err != nil {
 		return false, err
 	}
@@ -62,7 +83,7 @@ func (p *Polymorph) GetBool(path string) (bool, error) {
 // GetPolymorph returns a Polymoph value at path, resolving
 // IPLD references if necessary to get there.
 func (p *Polymorph) GetPolymorph(path string) (*Polymorph, error) {
-	raw, err := p.GetRawJSON(path)
+	raw, err := p.GetRawMessage(path)
 	if err != nil {
 		return nil, err
 	}
@@ -72,9 +93,9 @@ func (p *Polymorph) GetPolymorph(path string) (*Polymorph, error) {
 	return value, nil
 }
 
-// GetRawJSON returns the raw JSON value at path, resolving
+// GetRawMessage returns the raw JSON value at path, resolving
 // IPLD references if necessary to get there.
-func (p *Polymorph) GetRawJSON(path string) (json.RawMessage, error) {
+func (p *Polymorph) GetRawMessage(path string) (json.RawMessage, error) {
 	raw := p.raw
 
 	for _, pathPiece := range strings.Split(path, "/") {
@@ -103,17 +124,12 @@ func (p *Polymorph) GetRawJSON(path string) (json.RawMessage, error) {
 // GetString returns the string value at path, resolving
 // IPLD references if necessary to get there.
 func (p *Polymorph) GetString(path string) (string, error) {
-	raw, err := p.GetRawJSON(path)
+	poly, err := p.GetPolymorph(path)
 	if err != nil {
 		return "", err
 	}
 
-	value := ""
-	err = json.Unmarshal(raw, &value)
-	if err != nil {
-		return "", err
-	}
-	return value, nil
+	return poly.AsString()
 }
 
 // MarshalJSON returns the original JSON used to
