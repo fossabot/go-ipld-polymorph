@@ -67,17 +67,12 @@ func (p *Polymorph) AsRawMessage() (json.RawMessage, error) {
 // GetBool returns the bool value at path, resolving
 // IPLD references if necessary to get there.
 func (p *Polymorph) GetBool(path string) (bool, error) {
-	raw, err := p.GetRawMessage(path)
+	poly, err := p.GetPolymorph(path)
 	if err != nil {
 		return false, err
 	}
 
-	value := false
-	err = json.Unmarshal(raw, &value)
-	if err != nil {
-		return false, err
-	}
-	return value, nil
+	return poly.AsBool()
 }
 
 // GetPolymorph returns a Polymoph value at path, resolving
