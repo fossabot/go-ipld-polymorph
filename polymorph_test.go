@@ -263,6 +263,24 @@ func TestGetStringIPLD(t *testing.T) {
 	}
 }
 
+func TestGetStringNestedIPLD(t *testing.T) {
+	beforeEach()
+	httpResponses[http.MethodGet]["/api/v0/dag/get?arg=foo-addr"] = `{"bar": {"/": "bar-addr"}}`
+	httpResponses[http.MethodGet]["/api/v0/dag/get?arg=bar-addr"] = `"red"`
+
+	p := ipldpolymorph.New(ipfsURL)
+	p.UnmarshalJSON([]byte(`{"foo": {"/": "foo-addr"}}`))
+
+	bar, err := p.GetString("foo/bar")
+	if err != nil {
+		t.Error(`Could not GetString for path "foo/bar":`, err.Error())
+	}
+
+	if bar != "red" {
+		t.Errorf(`Expected bar == "red". Actual bar == "%v"`, bar)
+	}
+}
+
 func TestGetStringAlmostIPLD(t *testing.T) {
 	beforeEach()
 	p := ipldpolymorph.New(ipfsURL)
