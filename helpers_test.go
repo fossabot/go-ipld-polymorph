@@ -9,6 +9,7 @@ import (
 )
 
 func TestAssertRef(t *testing.T) {
+	beforeEach()
 	ref, err := ipldpolymorph.AssertRef(json.RawMessage([]byte(`{"/":"foo"}`)))
 	if err != nil {
 		t.Error("Failed to ResolveRef:", err.Error())
@@ -19,6 +20,7 @@ func TestAssertRef(t *testing.T) {
 }
 
 func TestAssertRefNotString(t *testing.T) {
+	beforeEach()
 	ref, err := ipldpolymorph.AssertRef(json.RawMessage([]byte(`{"/":3}`)))
 	if err == nil {
 		t.Error("Expected AssertRef to return an error, received: nil")

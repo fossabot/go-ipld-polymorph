@@ -9,30 +9,68 @@ import (
 	ipldpolymorph "github.com/computes/go-ipld-polymorph"
 )
 
-func TestNew(t *testing.T) {
+func TestAsString(t *testing.T) {
 	beforeEach()
+
 	p := ipldpolymorph.New(ipfsURL)
-	if p == nil {
-		t.Error("p should not be nil")
+	p.UnmarshalJSON([]byte(`"bar"`))
+
+	foo, err := p.AsString()
+	if err != nil {
+		t.Error(`Could not AsString:`, err.Error())
+	}
+
+	if foo != "bar" {
+		t.Errorf(`Expected foo == "bar". Actual foo == "%v"`, foo)
 	}
 }
 
-func TestParse(t *testing.T) {
+func TestAsStringBadJSON(t *testing.T) {
 	beforeEach()
-	p := ipldpolymorph.New(ipfsURL)
 
-	err := json.Unmarshal([]byte(`{"foo": "bar"}`), &p)
-	if err != nil {
-		t.Error("Could not parse json", err.Error())
+	p := ipldpolymorph.New(ipfsURL)
+	p.UnmarshalJSON([]byte(`"ba`))
+
+	foo, err := p.AsString()
+	if err == nil {
+		t.Error("Expected AsString to return an error, received nil")
+	}
+
+	if foo != "" {
+		t.Errorf(`Expected foo == "". Actual foo == "%v"`, foo)
 	}
 }
 
-func TestParseBadJSON(t *testing.T) {
+func TestAsStringIPLDRef(t *testing.T) {
 	beforeEach()
+
+	httpResponses[http.MethodGet]["/api/v0/dag/get?arg=foo"] = `"bar"`
 	p := ipldpolymorph.New(ipfsURL)
-	err := p.UnmarshalJSON([]byte(`{"foo":`))
+	p.UnmarshalJSON([]byte(`{"/": "foo"}`))
+
+	foo, err := p.AsString()
 	if err != nil {
-		t.Error("UnmarshalJSON should defer parsing, it should not have errored. Received", err.Error())
+		t.Error(`Could not AsString:`, err.Error())
+	}
+
+	if foo != "bar" {
+		t.Errorf(`Expected foo == "bar". Actual foo == "%v"`, foo)
+	}
+}
+
+func TestAsStringBadIPLDRef(t *testing.T) {
+	beforeEach()
+
+	p := ipldpolymorph.New(ipfsURL)
+	p.UnmarshalJSON([]byte(`{"/": "foo"}`))
+
+	foo, err := p.AsString()
+	if err == nil {
+		t.Error("Expected AsString to return an error, received nil")
+	}
+
+	if foo != "" {
+		t.Errorf(`Expected foo == "". Actual foo == "%v"`, foo)
 	}
 }
 
@@ -232,5 +270,32 @@ func TestGetStringNotThere(t *testing.T) {
 	}
 	if bar != "" {
 		t.Errorf(`Expected bar == "". Actual bar == "%v"`, bar)
+	}
+}
+
+func TestNew(t *testing.T) {
+	beforeEach()
+	p := ipldpolymorph.New(ipfsURL)
+	if p == nil {
+		t.Error("p should not be nil")
+	}
+}
+
+func TestParse(t *testing.T) {
+	beforeEach()
+	p := ipldpolymorph.New(ipfsURL)
+
+	err := json.Unmarshal([]byte(`{"foo": "bar"}`), &p)
+	if err != nil {
+		t.Error("Could not parse json", err.Error())
+	}
+}
+
+func TestParseBadJSON(t *testing.T) {
+	beforeEach()
+	p := ipldpolymorph.New(ipfsURL)
+	err := p.UnmarshalJSON([]byte(`{"foo":`))
+	if err != nil {
+		t.Error("UnmarshalJSON should defer parsing, it should not have errored. Received", err.Error())
 	}
 }
