@@ -113,7 +113,7 @@ func TestGetPolymorphBadJSON(t *testing.T) {
 		t.Error("Expected GetPolymorph to return an error, received nil")
 	}
 	if foo != nil {
-		t.Errorf("Expected foo to be nil, was:", foo)
+		t.Error("Expected foo to be nil, was:", foo)
 	}
 }
 
