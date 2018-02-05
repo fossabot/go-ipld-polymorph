@@ -13,13 +13,13 @@ import (
 // lazy loads all IPLD references and caches the results,
 // so subsequent calls to a path will have nearly no cost.
 type Polymorph struct {
-	ipfsURL url.URL
+	IPFSURL url.URL
 	raw     json.RawMessage
 }
 
 // New Constructs a new Polymorph instance
 func New(ipfsURL url.URL) *Polymorph {
-	return &Polymorph{ipfsURL: ipfsURL}
+	return &Polymorph{IPFSURL: ipfsURL}
 }
 
 // AsBool returns the current value as a bool,
@@ -61,7 +61,7 @@ func (p *Polymorph) AsRawMessage() (json.RawMessage, error) {
 		return p.raw, nil
 	}
 
-	return ResolveRef(p.ipfsURL, p.raw)
+	return ResolveRef(p.IPFSURL, p.raw)
 }
 
 // GetBool returns the bool value at path, resolving
@@ -83,7 +83,7 @@ func (p *Polymorph) GetPolymorph(path string) (*Polymorph, error) {
 		return nil, err
 	}
 
-	value := New(p.ipfsURL)
+	value := New(p.IPFSURL)
 	_ = value.UnmarshalJSON(raw) // UnmarshalJSON returns an error
 	return value, nil
 }
@@ -106,7 +106,7 @@ func (p *Polymorph) GetRawMessage(path string) (json.RawMessage, error) {
 			return nil, fmt.Errorf(`no value found at path "%v"`, path)
 		}
 		if IsRef(raw) {
-			raw, err = ResolveRef(p.ipfsURL, raw)
+			raw, err = ResolveRef(p.IPFSURL, raw)
 			if err != nil {
 				return nil, err
 			}
