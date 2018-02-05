@@ -2,26 +2,15 @@ package ipldpolymorph_test
 
 import (
 	"encoding/json"
-	"log"
-	"net/url"
+	"net/http"
 	"strings"
 	"testing"
 
 	ipldpolymorph "github.com/computes/go-ipld-polymorph"
 )
 
-var ipfsURL url.URL
-
-func TestMain(m *testing.M) {
-	parsed, err := url.Parse("http://localhost:5001")
-	if err != nil {
-		log.Fatalln("Error parsing IPFS URL")
-	}
-	ipfsURL = *parsed
-	m.Run()
-}
-
 func TestNew(t *testing.T) {
+	beforeEach()
 	p := ipldpolymorph.New(ipfsURL)
 	if p == nil {
 		t.Error("p should not be nil")
@@ -29,6 +18,7 @@ func TestNew(t *testing.T) {
 }
 
 func TestParse(t *testing.T) {
+	beforeEach()
 	p := ipldpolymorph.New(ipfsURL)
 
 	err := json.Unmarshal([]byte(`{"foo": "bar"}`), &p)
@@ -38,6 +28,7 @@ func TestParse(t *testing.T) {
 }
 
 func TestParseBadJSON(t *testing.T) {
+	beforeEach()
 	p := ipldpolymorph.New(ipfsURL)
 	err := p.UnmarshalJSON([]byte(`{"foo":`))
 	if err != nil {
@@ -46,6 +37,7 @@ func TestParseBadJSON(t *testing.T) {
 }
 
 func TestGetBool(t *testing.T) {
+	beforeEach()
 	p := ipldpolymorph.New(ipfsURL)
 	p.UnmarshalJSON([]byte(`{"foo": true}`))
 
@@ -60,6 +52,7 @@ func TestGetBool(t *testing.T) {
 }
 
 func TestGetBoolBadJSON(t *testing.T) {
+	beforeEach()
 	p := ipldpolymorph.New(ipfsURL)
 	p.UnmarshalJSON([]byte(`{"foo"`))
 
@@ -73,6 +66,7 @@ func TestGetBoolBadJSON(t *testing.T) {
 }
 
 func TestGetBoolNotBool(t *testing.T) {
+	beforeEach()
 	p := ipldpolymorph.New(ipfsURL)
 	p.UnmarshalJSON([]byte(`{"foo": "bar"}`))
 
@@ -86,6 +80,7 @@ func TestGetBoolNotBool(t *testing.T) {
 }
 
 func TestGetPolymorph(t *testing.T) {
+	beforeEach()
 	p := ipldpolymorph.New(ipfsURL)
 	p.UnmarshalJSON([]byte(`{"foo": {"bar": "red"}}`))
 
@@ -105,6 +100,7 @@ func TestGetPolymorph(t *testing.T) {
 }
 
 func TestGetPolymorphBadJSON(t *testing.T) {
+	beforeEach()
 	p := ipldpolymorph.New(ipfsURL)
 	p.UnmarshalJSON([]byte(`{"foo"`))
 
@@ -118,6 +114,7 @@ func TestGetPolymorphBadJSON(t *testing.T) {
 }
 
 func TestGetString(t *testing.T) {
+	beforeEach()
 	p := ipldpolymorph.New(ipfsURL)
 	p.UnmarshalJSON([]byte(`{"foo": "bar"}`))
 
@@ -132,6 +129,7 @@ func TestGetString(t *testing.T) {
 }
 
 func TestGetStringNested(t *testing.T) {
+	beforeEach()
 	p := ipldpolymorph.New(ipfsURL)
 	p.UnmarshalJSON([]byte(`{"foo": {"bar": "red"}}`))
 
@@ -145,7 +143,55 @@ func TestGetStringNested(t *testing.T) {
 	}
 }
 
+func TestGetStringIPLD(t *testing.T) {
+	beforeEach()
+	httpResponses[http.MethodGet]["/api/v0/dag/get?arg=address-of-foo"] = `"bar"`
+
+	p := ipldpolymorph.New(ipfsURL)
+	p.UnmarshalJSON([]byte(`{"foo": {"/": "address-of-foo"}}`))
+
+	foo, err := p.GetString("foo")
+	if err != nil {
+		t.Error(`Could not GetString for path "foo":`, err.Error())
+	}
+
+	if foo != "bar" {
+		t.Errorf(`Expected foo == "bar". Actual foo == "%v"`, foo)
+	}
+}
+
+func TestGetStringAlmostIPLD(t *testing.T) {
+	beforeEach()
+	p := ipldpolymorph.New(ipfsURL)
+	p.UnmarshalJSON([]byte(`{"foo": {"/": "bogus", "bar": "red"}}`))
+
+	bar, err := p.GetString("foo/bar")
+	if err != nil {
+		t.Error(`Could not GetString for path "foo/bar":`, err.Error())
+	}
+
+	if bar != "red" {
+		t.Errorf(`Expected bar == "red". Actual bar == "%v"`, bar)
+	}
+}
+
+func TestGetStringIPLDNotFound(t *testing.T) {
+	beforeEach()
+	p := ipldpolymorph.New(ipfsURL)
+	p.UnmarshalJSON([]byte(`{"foo": {"/": "address-of-foo"}}`))
+
+	foo, err := p.GetString("foo")
+	if err == nil {
+		t.Error("Expected GetString to return an error, received nil")
+	}
+
+	if foo != "" {
+		t.Errorf(`Expected foo == "". Actual foo == "%v"`, foo)
+	}
+}
+
 func TestGetStringBadJSON(t *testing.T) {
+	beforeEach()
 	p := ipldpolymorph.New(ipfsURL)
 	p.UnmarshalJSON([]byte(`{"foo":`))
 
@@ -159,6 +205,7 @@ func TestGetStringBadJSON(t *testing.T) {
 }
 
 func TestGetStringNotString(t *testing.T) {
+	beforeEach()
 	p := ipldpolymorph.New(ipfsURL)
 	p.UnmarshalJSON([]byte(`{"foo": 2}`))
 
@@ -172,6 +219,7 @@ func TestGetStringNotString(t *testing.T) {
 }
 
 func TestGetStringNotThere(t *testing.T) {
+	beforeEach()
 	p := ipldpolymorph.New(ipfsURL)
 	p.UnmarshalJSON([]byte(`{"foo": 2}`))
 

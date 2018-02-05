@@ -19,7 +19,7 @@ type Polymorph struct {
 
 // New Constructs a new Polymorph instance
 func New(ipfsURL url.URL) *Polymorph {
-	return &Polymorph{}
+	return &Polymorph{ipfsURL: ipfsURL}
 }
 
 // GetBool returns the bool value at path, resolving
@@ -67,6 +67,12 @@ func (p *Polymorph) GetRawJSON(path string) (json.RawMessage, error) {
 		raw, ok = parsed[pathPiece]
 		if !ok {
 			return nil, fmt.Errorf(`no value found at path "%v"`, path)
+		}
+		if IsRef(raw) {
+			raw, err = ResolveRef(p.ipfsURL, raw)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
