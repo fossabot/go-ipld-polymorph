@@ -27,6 +27,20 @@ func New(ipfsURL url.URL) *Polymorph {
 	return &Polymorph{IPFSURL: &ipfsURL}
 }
 
+// FromRef instantiates a new Polymorph instance with a ref
+func FromRef(ipfsURL url.URL, ref string) *Polymorph {
+	// Ignoring error, cause I could not
+	// figure out how to make this error:
+	// https://stackoverflow.com/questions/33903552/what-input-will-cause-golangs-json-marshal-to-return-an-error
+	raw, _ := json.Marshal(struct {
+		Address string `json:"/"`
+	}{
+		Address: ref,
+	})
+
+	return &Polymorph{IPFSURL: &ipfsURL, raw: raw}
+}
+
 // AsBool returns the current value as a bool,
 // resolving the IPLD reference if necessary
 func (p *Polymorph) AsBool() (bool, error) {
@@ -41,6 +55,16 @@ func (p *Polymorph) AsBool() (bool, error) {
 		return false, err
 	}
 	return value, nil
+}
+
+// AsRef returns the ref if it is one and
+// an empty string if not
+func (p *Polymorph) AsRef() string {
+	ref, err := AssertRef(p.raw)
+	if err != nil {
+		return ""
+	}
+	return ref
 }
 
 // AsString returns the current value as a string,

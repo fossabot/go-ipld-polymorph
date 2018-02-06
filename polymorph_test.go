@@ -75,6 +75,30 @@ func TestAsBoolBadIPLDRef(t *testing.T) {
 	}
 }
 
+func TestAsRef(t *testing.T) {
+	beforeEach()
+
+	p := ipldpolymorph.New(ipfsURL)
+	p.UnmarshalJSON([]byte(`{"/": "foo"}`))
+
+	ref := p.AsRef()
+	if ref != "foo" {
+		t.Errorf(`Expected ref == "foo". Actual ref == "%v"`, ref)
+	}
+}
+
+func TestAsRefNotRef(t *testing.T) {
+	beforeEach()
+
+	p := ipldpolymorph.New(ipfsURL)
+	p.UnmarshalJSON([]byte(`"bar"`))
+
+	ref := p.AsRef()
+	if ref != "" {
+		t.Errorf(`Expected ref == "". Actual ref == "%v"`, ref)
+	}
+}
+
 func TestAsString(t *testing.T) {
 	beforeEach()
 
@@ -160,6 +184,17 @@ func TestAsStringCachedIPLDRef(t *testing.T) {
 
 	if foo != "bar" {
 		t.Errorf(`Expected foo == "bar". Actual foo == "%v"`, foo)
+	}
+}
+
+func TestFromRef(t *testing.T) {
+	beforeEach()
+
+	p := ipldpolymorph.FromRef(ipfsURL, "foo")
+
+	ref := p.AsRef()
+	if ref != "foo" {
+		t.Errorf(`Expected ref == "foo". Actual ref == "%v"`, ref)
 	}
 }
 
