@@ -120,12 +120,20 @@ func (p *Polymorph) GetPolymorph(path string) (*Polymorph, error) {
 // GetRawMessage returns the raw JSON value at path, resolving
 // IPLD references if necessary to get there.
 func (p *Polymorph) GetRawMessage(path string) (json.RawMessage, error) {
+	var err error
+
 	raw := p.raw
+	if IsRef(raw) {
+		raw, err = ResolveRef(p.ipfsURL(), raw, p.getCache())
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	for _, pathPiece := range strings.Split(path, "/") {
 		var ok bool
 		parsed := make(map[string]json.RawMessage)
-		err := json.Unmarshal(raw, &parsed)
+		err = json.Unmarshal(raw, &parsed)
 		if err != nil {
 			return nil, err
 		}

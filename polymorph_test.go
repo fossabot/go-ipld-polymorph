@@ -198,6 +198,53 @@ func TestFromRef(t *testing.T) {
 	}
 }
 
+func TestFromRefAsStringIPLD(t *testing.T) {
+	beforeEach()
+
+	httpResponses[http.MethodGet]["/api/v0/dag/get?arg=foo"] = `"bar"`
+	p := ipldpolymorph.FromRef(ipfsURL, "foo")
+
+	foo, err := p.AsString()
+	if err != nil {
+		t.Error("Couldn't AsString FromRef:", err.Error())
+	}
+
+	if foo != "bar" {
+		t.Errorf(`Expected foo == "bar". Actual foo == "%v"`, foo)
+	}
+}
+
+func TestFromRefGetStringIPLD(t *testing.T) {
+	beforeEach()
+
+	httpResponses[http.MethodGet]["/api/v0/dag/get?arg=foo"] = `{"bar":"red"}`
+	p := ipldpolymorph.FromRef(ipfsURL, "foo")
+
+	bar, err := p.GetString("bar")
+	if err != nil {
+		t.Error("Couldn't AsString FromRef:", err.Error())
+	}
+
+	if bar != "red" {
+		t.Errorf(`Expected bar == "red". Actual bar == "%v"`, bar)
+	}
+}
+
+func TestFromRefGetStringIPLDBadRef(t *testing.T) {
+	beforeEach()
+
+	p := ipldpolymorph.FromRef(ipfsURL, "foo")
+
+	bar, err := p.GetString("bar")
+	if err == nil {
+		t.Error("Expected GetString to return error, received nil")
+	}
+
+	if bar != "" {
+		t.Errorf(`Expected bar == "". Actual bar == "%v"`, bar)
+	}
+}
+
 func TestGetBool(t *testing.T) {
 	beforeEach()
 	p := ipldpolymorph.New(ipfsURL)
