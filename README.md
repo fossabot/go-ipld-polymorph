@@ -3,6 +3,18 @@ Treat IPLD refs as values or refs
 
 [![CircleCI](https://circleci.com/gh/computes/go-ipld-polymorph.svg?style=svg&circle-token=7d137619c8280f992c2286fe3af2fac1ca3adbce)](https://circleci.com/gh/computes/go-ipld-polymorph)
 
+## Up to date docs
+
+To get the most up to date docs:
+
+```shell
+#!/bin/bash
+go get -u github.com/computes/go-ipld-polymorph
+godoc -http :8080
+```
+
+Then visit http://localhost:8080/pkg/github.com/computes/go-ipld-polymorph/
+
 # ipldpolymorph
 --
     import ipldpolymorph "github.com/computes/go-ipld-polymorph"
