@@ -140,6 +140,29 @@ func TestAsStringBadIPLDRef(t *testing.T) {
 	}
 }
 
+func TestAsStringCachedIPLDRef(t *testing.T) {
+	beforeEach()
+
+	httpResponses[http.MethodGet]["/api/v0/dag/get?arg=foo"] = `"bar"`
+	p := ipldpolymorph.New(ipfsURL)
+	p.UnmarshalJSON([]byte(`{"/": "foo"}`))
+
+	_, err := p.AsString()
+	if err != nil {
+		t.Error(`Could not AsString:`, err.Error())
+	}
+
+	delete(httpResponses[http.MethodGet], "/api/v0/dag/get?arg=foo")
+	foo, err := p.AsString()
+	if err != nil {
+		t.Error(`Could not AsString:`, err.Error())
+	}
+
+	if foo != "bar" {
+		t.Errorf(`Expected foo == "bar". Actual foo == "%v"`, foo)
+	}
+}
+
 func TestGetBool(t *testing.T) {
 	beforeEach()
 	p := ipldpolymorph.New(ipfsURL)

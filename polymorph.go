@@ -19,6 +19,7 @@ var DefaultIPFSURL url.URL
 type Polymorph struct {
 	IPFSURL *url.URL
 	raw     json.RawMessage
+	cache   Cache
 }
 
 // New Constructs a new Polymorph instance
@@ -65,7 +66,7 @@ func (p *Polymorph) AsRawMessage() (json.RawMessage, error) {
 		return p.raw, nil
 	}
 
-	return ResolveRef(p.ipfsURL(), p.raw)
+	return ResolveRef(p.ipfsURL(), p.raw, p.getCache())
 }
 
 // GetBool returns the bool value at path, resolving
@@ -110,7 +111,7 @@ func (p *Polymorph) GetRawMessage(path string) (json.RawMessage, error) {
 			return nil, fmt.Errorf(`no value found at path "%v"`, path)
 		}
 		if IsRef(raw) {
-			raw, err = ResolveRef(p.ipfsURL(), raw)
+			raw, err = ResolveRef(p.ipfsURL(), raw, p.getCache())
 			if err != nil {
 				return nil, err
 			}
@@ -146,6 +147,13 @@ func (p *Polymorph) MarshalJSON() ([]byte, error) {
 func (p *Polymorph) UnmarshalJSON(b []byte) error {
 	p.raw = json.RawMessage(b)
 	return nil
+}
+
+func (p *Polymorph) getCache() Cache {
+	if p.cache == nil {
+		p.cache = NewSimpleCache()
+	}
+	return p.cache
 }
 
 func (p *Polymorph) ipfsURL() url.URL {

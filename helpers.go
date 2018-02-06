@@ -13,10 +13,14 @@ type _Ref struct {
 }
 
 // ResolveRef will resolve the given IPLD reference.
-func ResolveRef(ipfsURL url.URL, raw json.RawMessage) (json.RawMessage, error) {
+func ResolveRef(ipfsURL url.URL, raw json.RawMessage, cache Cache) (json.RawMessage, error) {
 	ref, err := AssertRef(raw)
 	if err != nil {
 		return nil, err
+	}
+
+	if value := cache.Get(ref); value != nil {
+		return value, nil
 	}
 
 	res, err := dag.GetBytes(ipfsURL, ref)
@@ -24,7 +28,9 @@ func ResolveRef(ipfsURL url.URL, raw json.RawMessage) (json.RawMessage, error) {
 		return nil, err
 	}
 
-	return json.RawMessage(res), nil
+	value := json.RawMessage(res)
+	cache.Set(ref, value)
+	return value, nil
 }
 
 // IsRef detects if a rawMessage is an IPLD reference.
