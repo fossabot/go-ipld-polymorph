@@ -9,16 +9,13 @@
 
 [[projects]]
   name = "github.com/computes/ipfs-http-api"
-  packages = [
-    "dag",
-    "http"
-  ]
-  revision = "36a9272ff5da51fa0c46e8b8b25baa59772278ee"
-  version = "v4.0.0"
+  packages = ["dag","http"]
+  revision = "72b06bb897af91feded9a76de1b36bda6a15dfcb"
+  version = "v6.1.0"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "14b5126e1ef59ecb8c8ab0414c6ff3f5b34771afc0772653f6e2ba6bdfe68c01"
+  inputs-digest = "78de0b283824bd9d4df4d6cf6f877c890352830a1f755122884914090be200ba"
   solver-name = "gps-cdcl"
   solver-version = 1
