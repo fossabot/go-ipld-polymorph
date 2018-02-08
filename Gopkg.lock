@@ -2,14 +2,23 @@
 
 
 [[projects]]
+  branch = "master"
+  name = "github.com/computes/go-debug"
+  packages = ["."]
+  revision = "7cb67a40409f4bbd31b6d0e8eb8b662bbdd3e252"
+
+[[projects]]
   name = "github.com/computes/ipfs-http-api"
-  packages = [".","dag","http"]
-  revision = "af3d93a7e428aa69963bd520a2f52f793961a39e"
-  version = "v3.0.0"
+  packages = [
+    "dag",
+    "http"
+  ]
+  revision = "36a9272ff5da51fa0c46e8b8b25baa59772278ee"
+  version = "v4.0.0"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "ffdb38cbbef4b66653080b8a52a72a95fb0327c0330bc9336263b93d2e346251"
+  inputs-digest = "14b5126e1ef59ecb8c8ab0414c6ff3f5b34771afc0772653f6e2ba6bdfe68c01"
   solver-name = "gps-cdcl"
   solver-version = 1
