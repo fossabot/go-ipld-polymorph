@@ -2,19 +2,20 @@ package ipldpolymorph
 
 import (
 	"encoding/json"
+	"sync"
 )
 
 // SimpleCache implements Cache
 // in the simplest way possible
 type SimpleCache struct {
-	cache map[string]json.RawMessage
+	cache *sync.Map
 }
 
 // NewSimpleCache returns an instance of
 // SimpleCache, which can be used as Cache
 func NewSimpleCache() Cache {
 	return &SimpleCache{
-		cache: map[string]json.RawMessage{},
+		cache: &sync.Map{},
 	}
 }
 
@@ -22,10 +23,14 @@ func NewSimpleCache() Cache {
 // a given HTTP request path. Returns
 // nil if the cache is not present
 func (s *SimpleCache) Get(path string) json.RawMessage {
-	return s.cache[path]
+	val, ok := s.cache.Load(path)
+	if !ok {
+		return nil
+	}
+	return val.(json.RawMessage)
 }
 
 // Set sets a cache value.
 func (s *SimpleCache) Set(path string, value json.RawMessage) {
-	s.cache[path] = value
+	s.cache.Store(path, value)
 }

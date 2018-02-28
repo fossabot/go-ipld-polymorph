@@ -10,6 +10,24 @@ import (
 	ipldpolymorph "github.com/computes/go-ipld-polymorph"
 )
 
+func BenchmarkAsBool(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		beforeEach()
+
+		p := ipldpolymorph.New(ipfsURL)
+		p.UnmarshalJSON([]byte(`true`))
+
+		foo, err := p.AsBool()
+		if err != nil {
+			b.Error(`Could not AsBool:`, err.Error())
+		}
+
+		if !foo {
+			b.Errorf(`Expected foo == true. Actual foo == false`)
+		}
+	}
+}
+
 func TestAsBool(t *testing.T) {
 	beforeEach()
 
