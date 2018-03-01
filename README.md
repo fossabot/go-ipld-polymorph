@@ -159,6 +159,21 @@ func (p *Polymorph) GetString(path string) (string, error)
 GetString returns the string value at path, resolving IPLD references if
 necessary to get there.
 
+#### func (*Polymorph) GetUnresolvedPolymorph
+
+```go
+func (p *Polymorph) GetUnresolvedPolymorph(path string) (*Polymorph, error)
+```
+GetUnresolvedPolymorph returns a Polymorph value at path, resolving only necessary IPLD
+references to get there.
+
+#### func (*Polymorph) GetUnresolvedRawMessage
+
+```go
+func (p *Polymorph) GetUnresolvedRawMessage(path string) (json.RawMessage, error)
+```
+GetUnresolvedRawMessage returns the raw JSON value at path, resolving only necessary IPLD 
+references to get there.
 #### func (*Polymorph) IsRef
 
 ```go
