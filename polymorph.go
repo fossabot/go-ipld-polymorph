@@ -86,7 +86,7 @@ func (p *Polymorph) AsString() (string, error) {
 // AsRawMessage returns the current value as a string,
 // resolving the IPLD reference if necessary
 func (p *Polymorph) AsRawMessage() (json.RawMessage, error) {
-	if !IsRef(p.raw) {
+	if !p.IsRef() {
 		return p.raw, nil
 	}
 
@@ -170,6 +170,16 @@ func (p *Polymorph) GetString(path string) (string, error) {
 // then it returns nil
 func (p *Polymorph) MarshalJSON() ([]byte, error) {
 	return p.raw.MarshalJSON()
+}
+
+// IsRef detects if a rawMessage is an IPLD reference.
+// An IPLD reference MUST be a JSON object with ONLY
+// the key "/". The value pointed to by "/" must be a
+// string. If there are any additional keys, the value
+// is not a string, or the JSON is invalid, then it is
+// not considered an IPLD reference.
+func (p *Polymorph) IsRef() bool {
+	return IsRef(p.raw)
 }
 
 // UnmarshalJSON defers parsing json until one of the

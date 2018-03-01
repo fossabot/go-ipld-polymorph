@@ -480,6 +480,30 @@ func TestGetStringNotThere(t *testing.T) {
 	}
 }
 
+func TestIsRef(t *testing.T) {
+	beforeEach()
+
+	p := ipldpolymorph.New(ipfsURL)
+	p.UnmarshalJSON([]byte(`{"/": "foo"}`))
+
+	ref := p.IsRef()
+	if !ref {
+		t.Errorf(`Expected IsRef == true. Actual IsRef == "%v"`, ref)
+	}
+}
+
+func TestIsRefNotRef(t *testing.T) {
+	beforeEach()
+
+	p := ipldpolymorph.New(ipfsURL)
+	p.UnmarshalJSON([]byte(`"bar"`))
+
+	ref := p.IsRef()
+	if ref {
+		t.Errorf(`Expected IsRef == false. Actual IsRef == "%v"`, ref)
+	}
+}
+
 func TestNew(t *testing.T) {
 	beforeEach()
 	p := ipldpolymorph.New(ipfsURL)
