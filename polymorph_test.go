@@ -552,3 +552,23 @@ func TestParseBadJSON(t *testing.T) {
 		t.Error("UnmarshalJSON should defer parsing, it should not have errored. Received", err.Error())
 	}
 }
+
+func TestGetUnresolvedPolymorph(t *testing.T) {
+	beforeEach()
+	p := ipldpolymorph.New(ipfsURL)
+	p.UnmarshalJSON([]byte(`{"foo": {"bar": {"/": "abcdefg"}}}`))
+
+	foo, err := p.GetUnresolvedPolymorph("foo/bar")
+	if err != nil {
+		t.Error(`Could not GetUnresolvedPolymorph for path "foo/bar":`, err.Error())
+	}
+
+	data, err := json.Marshal(foo)
+	if err != nil {
+		t.Error(`Could not marshal foo`, err.Error())
+	}
+
+	if string(data) != `{"/":"abcdefg"}` {
+		t.Error(`Expected data to be {"/":"abcdefg"}, was`, string(data))
+	}
+}

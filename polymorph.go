@@ -153,6 +153,49 @@ func (p *Polymorph) GetRawMessage(path string) (json.RawMessage, error) {
 	return raw, nil
 }
 
+// GetUnresolvedPolymorph returns a Polymorph value at path, resolving
+// only the necessary IPLD references to get there.
+func (p *Polymorph) GetUnresolvedPolymorph(path string) (*Polymorph, error) {
+	raw, err := p.GetUnresolvedRawMessage(path)
+	if err != nil {
+		return nil, err
+	}
+
+	value := New(p.ipfsURL())
+	_ = value.UnmarshalJSON(raw) // UnmarshalJSON returns an error
+	return value, nil
+}
+
+// GetUnresolvedRawMessage returns the raw JSON value at path, resolving
+// only the necessary IPLD references to get there.
+func (p *Polymorph) GetUnresolvedRawMessage(path string) (json.RawMessage, error) {
+	var err error
+
+	raw := p.raw
+	if IsRef(raw) {
+		raw, err = ResolveRef(p.ipfsURL(), raw, p.getCache())
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	for _, pathPiece := range strings.Split(path, "/") {
+		var ok bool
+		parsed := make(map[string]json.RawMessage)
+		err = json.Unmarshal(raw, &parsed)
+		if err != nil {
+			return nil, err
+		}
+
+		raw, ok = parsed[pathPiece]
+		if !ok {
+			return nil, fmt.Errorf(`no value found at path "%v"`, path)
+		}
+	}
+
+	return raw, nil
+}
+
 // GetString returns the string value at path, resolving
 // IPLD references if necessary to get there.
 func (p *Polymorph) GetString(path string) (string, error) {
