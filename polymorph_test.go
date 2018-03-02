@@ -603,6 +603,27 @@ func TestGetUnresolvedPolymorphValueNotObject(t *testing.T) {
 	}
 }
 
+func TestGetUnresolvedPolymorphNestedRef(t *testing.T) {
+	beforeEach()
+	httpResponses[http.MethodGet]["/api/v0/dag/get?arg=address-of-bar"] = `{"bar":{"/":"abcdefg"}}`
+	p := ipldpolymorph.New(ipfsURL)
+	p.UnmarshalJSON([]byte(`{"foo": {"/": "address-of-bar"}}`))
+
+	foo, err := p.GetUnresolvedPolymorph("foo/bar")
+	if err != nil {
+		t.Fatal(`Error on p.GetUnresolvedPolymorph("foo/bar")`, err.Error())
+	}
+
+	data, err := json.Marshal(foo)
+	if err != nil {
+		t.Fatal(`Could not marshal foo`, err.Error())
+	}
+
+	if string(data) != `{"/":"abcdefg"}` {
+		t.Fatalf(`Expected foo/bar == '{"/":"abcdefg"}', Actual foo/bar == '%s'`, data)
+	}
+}
+
 func TestGetUnresolvedPolymorphRootRef(t *testing.T) {
 	beforeEach()
 	httpResponses[http.MethodGet]["/api/v0/dag/get?arg=address-of-foo"] = `{"foo":{"bar":{"/":"abcdefg"}}}`

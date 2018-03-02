@@ -179,7 +179,9 @@ func (p *Polymorph) GetUnresolvedRawMessage(path string) (json.RawMessage, error
 		}
 	}
 
-	for _, pathPiece := range strings.Split(path, "/") {
+	paths := strings.Split(path, "/")
+
+	for i, pathPiece := range paths {
 		var ok bool
 		parsed := make(map[string]json.RawMessage)
 		err = json.Unmarshal(raw, &parsed)
@@ -190,6 +192,13 @@ func (p *Polymorph) GetUnresolvedRawMessage(path string) (json.RawMessage, error
 		raw, ok = parsed[pathPiece]
 		if !ok {
 			return nil, fmt.Errorf(`no value found at path "%v"`, path)
+		}
+		// only leave the last part of the path unresolved
+		if i < len(paths)-1 && IsRef(raw) {
+			raw, err = ResolveRef(p.ipfsURL(), raw, p.getCache())
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
