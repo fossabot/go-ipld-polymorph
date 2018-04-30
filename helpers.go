@@ -13,7 +13,7 @@ type _Ref struct {
 }
 
 // ResolveRef will resolve the given IPLD reference.
-func ResolveRef(ipfsURL url.URL, raw json.RawMessage, cache Cache) (json.RawMessage, error) {
+func ResolveRef(ipfsURL *url.URL, raw json.RawMessage, cache Cache) (json.RawMessage, error) {
 	ref, err := AssertRef(raw)
 	if err != nil {
 		return nil, err

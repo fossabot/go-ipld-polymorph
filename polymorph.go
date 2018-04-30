@@ -9,7 +9,7 @@ import (
 
 // DefaultIPFSURL can be set to allow Polymorph
 // instantiated to be instantiated without a url
-var DefaultIPFSURL url.URL
+var DefaultIPFSURL *url.URL
 
 // Polymorph an object that treats IPLD references and
 // raw values the same. It is intended to be constructed
@@ -23,12 +23,12 @@ type Polymorph struct {
 }
 
 // New Constructs a new Polymorph instance
-func New(ipfsURL url.URL) *Polymorph {
-	return &Polymorph{IPFSURL: &ipfsURL}
+func New(ipfsURL *url.URL) *Polymorph {
+	return &Polymorph{IPFSURL: ipfsURL}
 }
 
 // FromRef instantiates a new Polymorph instance with a ref
-func FromRef(ipfsURL url.URL, ref string) *Polymorph {
+func FromRef(ipfsURL *url.URL, ref string) *Polymorph {
 	// Ignoring error, cause I could not
 	// figure out how to make this error:
 	// https://stackoverflow.com/questions/33903552/what-input-will-cause-golangs-json-marshal-to-return-an-error
@@ -38,7 +38,7 @@ func FromRef(ipfsURL url.URL, ref string) *Polymorph {
 		Address: ref,
 	})
 
-	return &Polymorph{IPFSURL: &ipfsURL, raw: raw}
+	return &Polymorph{IPFSURL: ipfsURL, raw: raw}
 }
 
 // AsBool returns the current value as a bool,
@@ -250,9 +250,9 @@ func (p *Polymorph) getCache() Cache {
 	return p.cache
 }
 
-func (p *Polymorph) ipfsURL() url.URL {
+func (p *Polymorph) ipfsURL() *url.URL {
 	if p.IPFSURL == nil {
 		return DefaultIPFSURL
 	}
-	return *p.IPFSURL
+	return p.IPFSURL
 }

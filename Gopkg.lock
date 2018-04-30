@@ -13,12 +13,12 @@
     "dag",
     "http"
   ]
-  revision = "f67497dbb9e2e184e66c760fa6c9285ee107e4e1"
-  version = "v7.0.0"
+  revision = "fff2786c16c384f66f96b6505c266b16f6b07b2d"
+  version = "v7.2.0"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "d6a58cf604f44a8782d2ae0d74ce880702a2a4bf90cc97283840c1392a35d0b8"
+  inputs-digest = "25990a8b0c1699318bf8a3f8768133b6cea4d597d8a44f7c458bd42b5b186ebc"
   solver-name = "gps-cdcl"
   solver-version = 1

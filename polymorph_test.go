@@ -525,7 +525,7 @@ func TestParse(t *testing.T) {
 func TestParseWithDefault(t *testing.T) {
 	beforeEach()
 	ipldpolymorph.DefaultIPFSURL = ipfsURL
-	defer func() { ipldpolymorph.DefaultIPFSURL = url.URL{} }()
+	defer func() { ipldpolymorph.DefaultIPFSURL = &url.URL{} }()
 
 	httpResponses[http.MethodGet]["/api/v0/dag/get?arg=foo"] = `"bar"`
 	p := ipldpolymorph.Polymorph{}

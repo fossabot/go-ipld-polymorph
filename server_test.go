@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-var ipfsURL url.URL
+var ipfsURL *url.URL
 var server *http.Server
 
 var httpResponses map[string]map[string]string
@@ -22,7 +22,7 @@ func TestMain(m *testing.M) {
 		log.Fatalln("Error parsing IPFS URL")
 	}
 
-	ipfsURL = *parsed
+	ipfsURL = parsed
 	m.Run()
 }
 
