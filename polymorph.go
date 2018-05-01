@@ -32,13 +32,24 @@ func FromRef(ipfsURL *url.URL, ref string) *Polymorph {
 	// Ignoring error, cause I could not
 	// figure out how to make this error:
 	// https://stackoverflow.com/questions/33903552/what-input-will-cause-golangs-json-marshal-to-return-an-error
-	raw, _ := json.Marshal(struct {
-		Address string `json:"/"`
-	}{
-		Address: ref,
-	})
+	link := map[string]string{"/": ref}
+	p, _ := FromInterface(ipfsURL, link)
+	return p
+}
 
-	return &Polymorph{IPFSURL: ipfsURL, raw: raw}
+// FromInterface instantiates a new Polymorph using json.Marshal
+// on the provided interface
+func FromInterface(ipfsURL *url.URL, data interface{}) (*Polymorph, error) {
+	p := New(ipfsURL)
+	buf, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+	err = p.UnmarshalJSON(buf)
+	if err != nil {
+		return nil, err
+	}
+	return p, nil
 }
 
 // AsBool returns the current value as a bool,
