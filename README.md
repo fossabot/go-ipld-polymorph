@@ -1,9 +1,9 @@
 # go-ipld-polymorph
 Treat IPLD refs as values or refs
 
+[![Godoc Reference](https://img.shields.io/badge/godoc-reference-blue.svg)](https://godoc.org/github.com/computes/go-ipld-polymorph)
+[![Go Report](https://img.shields.io/badge/go%20report-A%2B-brightgreen.svg)](https://goreportcard.com/report/github.com/computes/go-ipld-polymorph)
 [![CircleCI](https://circleci.com/gh/computes/go-ipld-polymorph.svg?style=svg&circle-token=7d137619c8280f992c2286fe3af2fac1ca3adbce)](https://circleci.com/gh/computes/go-ipld-polymorph)
-
-
 ## Up to date docs
 
 To get the most up to date docs:
