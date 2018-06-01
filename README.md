@@ -18,13 +18,13 @@ Then visit http://localhost:8080/pkg/github.com/computes/go-ipld-polymorph/
 
 # ipldpolymorph
 --
-    import ipldpolymorph "github.com/computes/go-ipld-polymorph"
+    import "github.com/computes/go-ipld-polymorph"
 
 
 ## Usage
 
 ```go
-var DefaultIPFSURL url.URL
+var DefaultIPFSURL *url.URL
 ```
 DefaultIPFSURL can be set to allow Polymorph instantiated to be instantiated
 without a url
@@ -50,7 +50,7 @@ invalid, then it is not considered an IPLD reference.
 #### func  ResolveRef
 
 ```go
-func ResolveRef(ipfsURL url.URL, raw json.RawMessage, cache Cache) (json.RawMessage, error)
+func ResolveRef(ipfsURL *url.URL, raw json.RawMessage, cache Cache) (json.RawMessage, error)
 ```
 ResolveRef will resolve the given IPLD reference.
 
@@ -90,10 +90,25 @@ intended to be constructed with New, and to be JSON Unmarshaled into. Polymorph
 lazy loads all IPLD references and caches the results, so subsequent calls to a
 path will have nearly no cost.
 
+#### func  FromInterface
+
+```go
+func FromInterface(ipfsURL *url.URL, data interface{}) (*Polymorph, error)
+```
+FromInterface instantiates a new Polymorph using json.Marshal on the provided
+interface
+
+#### func  FromRef
+
+```go
+func FromRef(ipfsURL *url.URL, ref string) *Polymorph
+```
+FromRef instantiates a new Polymorph instance with a ref
+
 #### func  New
 
 ```go
-func New(ipfsURL url.URL) *Polymorph
+func New(ipfsURL *url.URL) *Polymorph
 ```
 New Constructs a new Polymorph instance
 
@@ -116,7 +131,7 @@ if necessary
 #### func (*Polymorph) AsRef
 
 ```go
-func (p *Polymorph) AsRef() (string)
+func (p *Polymorph) AsRef() string
 ```
 AsRef returns the ref if it is one and an empty string if not
 
@@ -165,22 +180,23 @@ necessary to get there.
 ```go
 func (p *Polymorph) GetUnresolvedPolymorph(path string) (*Polymorph, error)
 ```
-GetUnresolvedPolymorph returns a Polymorph value at path, resolving only necessary IPLD
-references to get there.
+GetUnresolvedPolymorph returns a Polymorph value at path, resolving only the
+necessary IPLD references to get there.
 
 #### func (*Polymorph) GetUnresolvedRawMessage
 
 ```go
 func (p *Polymorph) GetUnresolvedRawMessage(path string) (json.RawMessage, error)
 ```
-GetUnresolvedRawMessage returns the raw JSON value at path, resolving only necessary IPLD 
-references to get there.
+GetUnresolvedRawMessage returns the raw JSON value at path, resolving only the
+necessary IPLD references to get there.
+
 #### func (*Polymorph) IsRef
 
 ```go
 func (p *Polymorph) IsRef() bool
 ```
-IsRef detects if *Polymorph.raw is an IPLD reference. An IPLD reference MUST be a
+IsRef detects if a rawMessage is an IPLD reference. An IPLD reference MUST be a
 JSON object with ONLY the key "/". The value pointed to by "/" must be a string.
 If there are any additional keys, the value is not a string, or the JSON is
 invalid, then it is not considered an IPLD reference.
