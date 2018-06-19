@@ -2,9 +2,10 @@ package ipldpolymorph
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/url"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 // DefaultIPFSURL can be set to allow Polymorph
@@ -43,11 +44,11 @@ func FromInterface(ipfsURL *url.URL, data interface{}) (*Polymorph, error) {
 	p := New(ipfsURL)
 	buf, err := json.Marshal(data)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Unable to json.Marshal")
 	}
 	err = p.UnmarshalJSON(buf)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Unable to UnmarshalJSON")
 	}
 	return p, nil
 }
@@ -55,17 +56,9 @@ func FromInterface(ipfsURL *url.URL, data interface{}) (*Polymorph, error) {
 // AsBool returns the current value as a bool,
 // resolving the IPLD reference if necessary
 func (p *Polymorph) AsBool() (bool, error) {
-	raw, err := p.AsRawMessage()
-	if err != nil {
-		return false, err
-	}
-
-	value := false
-	err = json.Unmarshal(raw, &value)
-	if err != nil {
-		return false, err
-	}
-	return value, nil
+	var b bool
+	err := p.ToInterface(&b)
+	return b, err
 }
 
 // AsRef returns the ref if it is one and
@@ -81,17 +74,34 @@ func (p *Polymorph) AsRef() string {
 // AsString returns the current value as a string,
 // resolving the IPLD reference if necessary
 func (p *Polymorph) AsString() (string, error) {
+	var s string
+	err := p.ToInterface(&s)
+	return s, err
+}
+
+// ToInterface returns the current value and maps it to the
+// given interface, resolving the IPLD reference if necessary
+func (p *Polymorph) ToInterface(data interface{}) error {
 	raw, err := p.AsRawMessage()
 	if err != nil {
-		return "", err
+		return errors.Wrap(err, "AsRawMessage failed")
 	}
 
-	value := ""
-	err = json.Unmarshal(raw, &value)
+	err = json.Unmarshal(raw, &data)
 	if err != nil {
-		return "", err
+		return errors.Wrap(err, "Unmarshal failed")
 	}
-	return value, nil
+
+	return nil
+}
+
+// CalcRef returns the ref of a raw message by
+// putting it into the dag
+func (p *Polymorph) CalcRef() (string, error) {
+	if p.IsRef() {
+		return p.AsRef(), nil
+	}
+	return CalcRef(p.ipfsURL(), p.raw)
 }
 
 // AsRawMessage returns the current value as a string,
@@ -109,7 +119,7 @@ func (p *Polymorph) AsRawMessage() (json.RawMessage, error) {
 func (p *Polymorph) GetBool(path string) (bool, error) {
 	poly, err := p.GetPolymorph(path)
 	if err != nil {
-		return false, err
+		return false, errors.Wrap(err, "GetPolymorph failed")
 	}
 
 	return poly.AsBool()
@@ -120,7 +130,7 @@ func (p *Polymorph) GetBool(path string) (bool, error) {
 func (p *Polymorph) GetPolymorph(path string) (*Polymorph, error) {
 	raw, err := p.GetRawMessage(path)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "GetRawMessage failed")
 	}
 
 	value := New(p.ipfsURL())
@@ -137,7 +147,7 @@ func (p *Polymorph) GetRawMessage(path string) (json.RawMessage, error) {
 	if IsRef(raw) {
 		raw, err = ResolveRef(p.ipfsURL(), raw, p.getCache())
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, "ResolveRef failed")
 		}
 	}
 
@@ -146,17 +156,17 @@ func (p *Polymorph) GetRawMessage(path string) (json.RawMessage, error) {
 		parsed := make(map[string]json.RawMessage)
 		err = json.Unmarshal(raw, &parsed)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, "Unmarshal failed")
 		}
 
 		raw, ok = parsed[pathPiece]
 		if !ok {
-			return nil, fmt.Errorf(`no value found at path "%v"`, path)
+			return nil, errors.Errorf(`no value found at path "%v"`, path)
 		}
 		if IsRef(raw) {
 			raw, err = ResolveRef(p.ipfsURL(), raw, p.getCache())
 			if err != nil {
-				return nil, err
+				return nil, errors.Wrap(err, "ResolveRef failed")
 			}
 		}
 	}
@@ -169,7 +179,7 @@ func (p *Polymorph) GetRawMessage(path string) (json.RawMessage, error) {
 func (p *Polymorph) GetUnresolvedPolymorph(path string) (*Polymorph, error) {
 	raw, err := p.GetUnresolvedRawMessage(path)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "GetUnresolvedRawMessage failed")
 	}
 
 	value := New(p.ipfsURL())
@@ -186,7 +196,7 @@ func (p *Polymorph) GetUnresolvedRawMessage(path string) (json.RawMessage, error
 	if IsRef(raw) {
 		raw, err = ResolveRef(p.ipfsURL(), raw, p.getCache())
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, "ResolveRef failed")
 		}
 	}
 
@@ -197,18 +207,18 @@ func (p *Polymorph) GetUnresolvedRawMessage(path string) (json.RawMessage, error
 		parsed := make(map[string]json.RawMessage)
 		err = json.Unmarshal(raw, &parsed)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, "Unmarshal failed")
 		}
 
 		raw, ok = parsed[pathPiece]
 		if !ok {
-			return nil, fmt.Errorf(`no value found at path "%v"`, path)
+			return nil, errors.Errorf(`no value found at path "%v"`, path)
 		}
 		// only leave the last part of the path unresolved
 		if i < len(paths)-1 && IsRef(raw) {
 			raw, err = ResolveRef(p.ipfsURL(), raw, p.getCache())
 			if err != nil {
-				return nil, err
+				return nil, errors.Wrap(err, "ResolveRef failed")
 			}
 		}
 	}
@@ -221,7 +231,7 @@ func (p *Polymorph) GetUnresolvedRawMessage(path string) (json.RawMessage, error
 func (p *Polymorph) GetString(path string) (string, error) {
 	poly, err := p.GetPolymorph(path)
 	if err != nil {
-		return "", err
+		return "", errors.Wrap(err, "GetPolymorph failed")
 	}
 
 	return poly.AsString()

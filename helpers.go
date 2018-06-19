@@ -2,10 +2,10 @@ package ipldpolymorph
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/url"
 
 	"github.com/computes/ipfs-http-api/dag"
+	"github.com/pkg/errors"
 )
 
 type _Ref struct {
@@ -16,7 +16,7 @@ type _Ref struct {
 func ResolveRef(ipfsURL *url.URL, raw json.RawMessage, cache Cache) (json.RawMessage, error) {
 	ref, err := AssertRef(raw)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Unable to AssertRef")
 	}
 
 	if value := cache.Get(ref); value != nil {
@@ -25,7 +25,7 @@ func ResolveRef(ipfsURL *url.URL, raw json.RawMessage, cache Cache) (json.RawMes
 
 	res, err := dag.GetBytes(ipfsURL, ref)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "unable to GetBytes")
 	}
 
 	value := json.RawMessage(res)
@@ -50,22 +50,33 @@ func AssertRef(raw json.RawMessage) (string, error) {
 	ref := map[string]json.RawMessage{}
 	err := json.Unmarshal(raw, &ref)
 	if err != nil {
-		return "", err
+		return "", errors.Wrap(err, "Unable to Unmarshal")
 	}
 	if len(ref) > 1 {
-		return "", fmt.Errorf("an IPLD ref may have only one key, found: %v", len(ref))
+		return "", errors.Errorf("an IPLD ref may have only one key, found: %v", len(ref))
 	}
 
 	rawAddress, ok := ref["/"]
 	if !ok {
-		return "", fmt.Errorf(`an IPLD ref must have the key "/", it was not found`)
+		return "", errors.New(`an IPLD ref must have the key "/", it was not found`)
 	}
 
 	address := ""
 	err = json.Unmarshal(rawAddress, &address)
 	if err != nil {
-		return "", err
+		return "", errors.Wrap(err, "Unable to Unmarshal")
 	}
 
 	return address, nil
+}
+
+// CalcRef uploads the raw JSON to IPFS
+// and returns the new ref
+func CalcRef(ipfsURL *url.URL, raw json.RawMessage) (string, error) {
+	buf, err := raw.MarshalJSON()
+	if err != nil {
+		return "", errors.Wrap(err, "Unable to MarshalJSON from RawMessage")
+	}
+
+	return dag.PutBytes(ipfsURL, buf)
 }
