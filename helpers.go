@@ -8,10 +8,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-type _Ref struct {
-	Address string `json:"/"`
-}
-
 // ResolveRef will resolve the given IPLD reference.
 func ResolveRef(ipfsURL *url.URL, raw json.RawMessage, cache Cache) (json.RawMessage, error) {
 	ref, err := AssertRef(raw)
@@ -72,7 +68,7 @@ func AssertRef(raw json.RawMessage) (string, error) {
 
 // CalcRef uploads the raw JSON to IPFS
 // and returns the new ref
-func CalcRef(ipfsURL *url.URL, raw json.RawMessage) (string, error) {
+func CalcRef(ipfsURL *url.URL, raw json.Marshaler) (string, error) {
 	buf, err := raw.MarshalJSON()
 	if err != nil {
 		return "", errors.Wrap(err, "Unable to MarshalJSON from RawMessage")
