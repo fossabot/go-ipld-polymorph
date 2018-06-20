@@ -43,6 +43,9 @@ func IsRef(raw json.RawMessage) bool {
 // AssertRef verifies that the raw JSON object is a ref.
 // It returns the address if it is, an error if it is not.
 func AssertRef(raw json.RawMessage) (string, error) {
+	if raw == nil {
+		return "", errors.Errorf("Polymorph.raw is nil")
+	}
 	ref := map[string]json.RawMessage{}
 	err := json.Unmarshal(raw, &ref)
 	if err != nil {
@@ -69,6 +72,9 @@ func AssertRef(raw json.RawMessage) (string, error) {
 // CalcRef uploads the raw JSON to IPFS
 // and returns the new ref
 func CalcRef(ipfsURL *url.URL, raw json.Marshaler) (string, error) {
+	if raw == nil {
+		return "", errors.Errorf("Polymorph.raw is nil")
+	}
 	buf, err := raw.MarshalJSON()
 	if err != nil {
 		return "", errors.Wrap(err, "Unable to MarshalJSON from RawMessage")
