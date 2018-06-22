@@ -10,7 +10,7 @@ import (
 
 // ResolveRef will resolve the given IPLD reference.
 func ResolveRef(ipfsURL *url.URL, raw json.RawMessage, cache Cache) (json.RawMessage, error) {
-	if ref == nil {
+	if raw == nil {
 		return nil, errors.Errorf("Message is nil")
 	}
 	ref, err := AssertRef(raw)
