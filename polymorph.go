@@ -242,6 +242,9 @@ func (p *Polymorph) GetString(path string) (string, error) {
 // JSON was ever Unmarshaled into this Polymorph,
 // then it returns nil
 func (p *Polymorph) MarshalJSON() ([]byte, error) {
+	if p.raw == nil {
+		return nil, errors.Errorf("Unable to MarshalJSON on nil")
+	}
 	return p.raw.MarshalJSON()
 }
 
@@ -252,6 +255,9 @@ func (p *Polymorph) MarshalJSON() ([]byte, error) {
 // is not a string, or the JSON is invalid, then it is
 // not considered an IPLD reference.
 func (p *Polymorph) IsRef() bool {
+	if p.raw == nil {
+		return false
+	}
 	return IsRef(p.raw)
 }
 
